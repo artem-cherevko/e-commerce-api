@@ -16,14 +16,19 @@ func New(cfg *config.Env) (*App, error) {
 	db := database.InitDB(cfg.DB_DSN)
 	database.Migrate(db)
 
-	_, err := auth.NewJWTMiddleware(cfg.JWT_SECRET)
+	mv, err := auth.NewJWTMiddleware(cfg.JWT_SECRET)
 	if err != nil {
 		return nil, err
 	}
 
+	// Init engine
 	engine := gin.New()
 	engine.Use(gin.Logger(), gin.Recovery())
 	engine.SetTrustedProxies([]string{"192.168.0.0/24"})
+
+	// AUTH
+	authService := auth.NewAuthService(db, mv)
+	auth.NewAuthHandler(authService)
 
 	engine.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "ok"}) })
 

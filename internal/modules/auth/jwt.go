@@ -38,6 +38,7 @@ func initParams(secret string) *jwt.GinJWTMiddleware {
 		IdentityKey:     identityKey,
 		IdentityHandler: identityHandler(),
 		PayloadFunc:     payloadFunc(),
+		Unauthorized:    unauthorized(),
 	}
 }
 
