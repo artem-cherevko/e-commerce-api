@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"e-commerce-api/internal/modules/user"
+	"e-commerce-api/internal/modules/models"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v3"
@@ -33,7 +33,7 @@ func initParams(secret string) *jwt.GinJWTMiddleware {
 		Key:         []byte(secret),
 		Timeout:     time.Minute * 5,
 		MaxRefresh:  time.Hour * 24 * 7,
-		TokenLookup: "cookie: jwt",
+		TokenLookup: "cookie: access_token",
 
 		IdentityKey:     identityKey,
 		IdentityHandler: identityHandler(),
@@ -54,7 +54,7 @@ func identityHandler() func(c *gin.Context) any {
 		if err != nil {
 			return nil
 		}
-		return &user.User{
+		return &models.User{
 			ID: id,
 		}
 	}
@@ -62,7 +62,7 @@ func identityHandler() func(c *gin.Context) any {
 
 func payloadFunc() func(data any) gojwt.MapClaims {
 	return func(data any) gojwt.MapClaims {
-		if v, ok := data.(*user.User); ok {
+		if v, ok := data.(*models.User); ok {
 			return gojwt.MapClaims{
 				identityKey: v.ID.String(),
 			}

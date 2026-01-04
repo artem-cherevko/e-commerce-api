@@ -6,6 +6,7 @@ import (
 	"e-commerce-api/internal/modules/auth"
 
 	"github.com/gin-gonic/gin"
+	"github.com/matthewhartstonge/argon2"
 )
 
 type App struct {
@@ -21,16 +22,20 @@ func New(cfg *config.Env) (*App, error) {
 		return nil, err
 	}
 
+	argon := argon2.DefaultConfig()
+
 	// Init engine
 	engine := gin.New()
 	engine.Use(gin.Logger(), gin.Recovery())
 	engine.SetTrustedProxies([]string{"192.168.0.0/24"})
 
 	// AUTH
-	authService := auth.NewAuthService(db, mv)
-	auth.NewAuthHandler(authService)
+	authService := auth.NewAuthService(db, mv, &argon)
+	authHandler := auth.NewAuthHandler(authService)
 
-	engine.GET("/", func(ctx *gin.Context) { ctx.JSON(200, gin.H{"message": "ok"}) })
+	r := engine.Group("/api/v1")
+
+	auth.RegisterAuthRouters(r, authHandler)
 
 	return &App{
 		Engine: engine,
