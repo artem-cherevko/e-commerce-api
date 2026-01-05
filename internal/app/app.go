@@ -4,6 +4,7 @@ import (
 	"e-commerce-api/internal/config"
 	"e-commerce-api/internal/database"
 	"e-commerce-api/internal/modules/auth"
+	"e-commerce-api/internal/modules/products"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matthewhartstonge/argon2"
@@ -33,9 +34,14 @@ func New(cfg *config.Env) (*App, error) {
 	authService := auth.NewAuthService(db, mv, &argon)
 	authHandler := auth.NewAuthHandler(authService)
 
+	// PRODUCTS
+	productsService := products.NewProductsService(db)
+	productsHandler := products.NewProductsHandler(productsService)
+
 	r := engine.Group("/api/v1")
 
 	auth.RegisterAuthRouters(r, authHandler)
+	products.RegisterProductsRouters(r, productsHandler, mv)
 
 	return &App{
 		Engine: engine,
