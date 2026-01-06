@@ -10,6 +10,7 @@ func RegisterProductsRouters(r *gin.RouterGroup, h *Handler, mv *jwt.GinJWTMiddl
 	products.Use(mv.MiddlewareFunc())
 	{
 		products.GET("/", h.GetProducts)
+		products.GET("/:id", h.GetProduct)
 		products.POST("/add", h.AddProduct)
 		products.DELETE("/delete/:id", h.DeleteProduct)
 	}

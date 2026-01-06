@@ -3,6 +3,7 @@ package products
 import (
 	"context"
 	"e-commerce-api/internal/modules/models"
+	"errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,7 +35,7 @@ func (s *Service) AddProduct(ctx context.Context, name string, price uint, quant
 func (s *Service) GetProducts(ctx context.Context) (*[]models.Product, error) {
 	var products []models.Product
 	result := s.db.WithContext(ctx).First(&products)
-	if result.RowsAffected == 0 {
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, ErrProductsNotFound
 	}
 	if result.Error != nil {
@@ -42,6 +43,19 @@ func (s *Service) GetProducts(ctx context.Context) (*[]models.Product, error) {
 	}
 
 	return &products, nil
+}
+
+func (s *Service) GetProduct(ctx context.Context, id uuid.UUID) (*models.Product, error) {
+	var product models.Product
+	err := s.db.WithContext(ctx).Where("id = ?", id).First(&product).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrProductNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &product, nil
 }
 
 func (s *Service) DeleteProduct(ctx context.Context, id uuid.UUID) error {

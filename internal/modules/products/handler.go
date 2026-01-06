@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type Handler struct {
@@ -47,12 +46,39 @@ func (h *Handler) GetProducts(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "an error occurred while getting products"})
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "an error occurred while finding products"})
 		log.Printf("error while getting products: %s", err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok", "products": products})
+}
+
+func (h *Handler) GetProduct(c *gin.Context) {
+	idStr := c.Param("id")
+	if idStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "provide product id"})
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "id not valid"})
+		return
+	}
+
+	product, err := h.service.GetProduct(c.Request.Context(), id)
+	if errors.Is(err, ErrProductNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "product not found"})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "an error occurred while finding product"})
+		log.Printf("error while getting products: %s", err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "product": product})
 }
 
 func (h *Handler) DeleteProduct(c *gin.Context) {
@@ -69,7 +95,7 @@ func (h *Handler) DeleteProduct(c *gin.Context) {
 	}
 
 	errDelete := h.service.DeleteProduct(c.Request.Context(), id)
-	if errors.Is(errDelete, gorm.ErrRecordNotFound) {
+	if errors.Is(errDelete, ErrProductsNotFound) {
 		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": fmt.Sprintf("%s not found", id)})
 		return
 	}
