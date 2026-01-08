@@ -9,6 +9,7 @@ func RegisterCartRouters(r *gin.RouterGroup, h *Handler, mv *jwt.GinJWTMiddlewar
 	cart := r.Group("/cart")
 	cart.Use(mv.MiddlewareFunc())
 	{
+		cart.GET("/:id", h.ViewCart)
 		cart.POST("/add-product/:id", h.AddProductToCart)
 		cart.DELETE("/remove-product/:id", h.RemoveProductFromCart)
 	}

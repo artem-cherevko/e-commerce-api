@@ -73,6 +73,14 @@ func (s *Service) AddProductToCart(
 	return returnCart, nil
 }
 
+func (s *Service) ViewCart(ctx context.Context, cartID uuid.UUID) (*models.Cart, error) {
+	var cart models.Cart
+	if err := s.db.WithContext(ctx).Preload("CartItems").Preload("CartItems.Product").Where("id = ?", cartID).First(&cart).Error; err != nil {
+		return nil, err
+	}
+	return &cart, nil
+}
+
 func (s *Service) RemoveProductFromCart(ctx context.Context, userID uuid.UUID, productID uuid.UUID) error {
 	var cart models.Cart
 	if err := s.db.WithContext(ctx).Where("user_id = ?", userID).First(&cart).Error; err != nil {

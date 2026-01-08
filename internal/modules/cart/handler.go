@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Handler struct {
@@ -55,6 +56,33 @@ func (h *Handler) AddProductToCart(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "an error occurred while trying to add product to cart"})
 		log.Printf("error while adding product to cart: %s", err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "cart": cart})
+}
+
+func (h *Handler) ViewCart(c *gin.Context) {
+	idStr := c.Param("id")
+	if idStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "provide cart id"})
+		return
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "id is invalid uuid"})
+		return
+	}
+
+	cart, errCart := h.service.ViewCart(c.Request.Context(), id)
+	if errors.Is(errCart, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "cart with this id not found"})
+		return
+	}
+	if errCart != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "an error occurred while trying to get cart"})
+		log.Printf("error while getting cart: %s", errCart.Error())
 		return
 	}
 
