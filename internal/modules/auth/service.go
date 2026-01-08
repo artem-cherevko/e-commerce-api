@@ -85,7 +85,21 @@ func (s *Service) Register(ctx context.Context, name string, userName string, em
 		Email:        email,
 		PasswordHash: string(passwordHash),
 	}
-	if err := s.db.WithContext(ctx).Create(&user).Error; err != nil {
+
+	if err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.WithContext(ctx).Create(&user).Error; err != nil {
+			return err
+		}
+
+		cart := models.Cart{
+			UserID: user.ID,
+		}
+		if err := tx.WithContext(ctx).Create(&cart).Error; err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 

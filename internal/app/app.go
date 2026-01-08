@@ -4,6 +4,7 @@ import (
 	"e-commerce-api/internal/config"
 	"e-commerce-api/internal/database"
 	"e-commerce-api/internal/modules/auth"
+	"e-commerce-api/internal/modules/cart"
 	"e-commerce-api/internal/modules/products"
 
 	"github.com/gin-gonic/gin"
@@ -38,10 +39,15 @@ func New(cfg *config.Env) (*App, error) {
 	productsService := products.NewProductsService(db)
 	productsHandler := products.NewProductsHandler(productsService)
 
+	// CART
+	cartService := cart.NewCartService(db, productsService)
+	cartHandler := cart.NewCartHandler(cartService)
+
 	r := engine.Group("/api/v1")
 
 	auth.RegisterAuthRouters(r, authHandler)
 	products.RegisterProductsRouters(r, productsHandler, mv)
+	cart.RegisterCartRouters(r, cartHandler, mv)
 
 	return &App{
 		Engine: engine,

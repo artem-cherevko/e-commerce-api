@@ -7,14 +7,15 @@ import (
 )
 
 type User struct {
-	ID uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid()"`
+	ID uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 
 	Name         string `json:"name"`
 	Email        string `json:"email" gorm:"type:varchar(255);uniqueIndex:idx_users_email"`
 	UserName     string `json:"user_name" gorm:"uniqueIndex:idx_users_user_name"`
 	PasswordHash string `json:"-"`
 
-	Sessions []UserSessions `gorm:"foreignKey:User"`
+	Sessions []UserSessions `gorm:"foreignKey:UserID"`
+	UserCart Cart           `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE;"`
 }
 
 type UserSessions struct {
