@@ -8,9 +8,11 @@ import (
 )
 
 type Env struct {
-	PORT       int64
-	JWT_SECRET string
-	DB_DSN     string
+	PORT                  int64
+	JWT_SECRET            string
+	DB_DSN                string
+	STRIPE_KEY            string
+	STRIPE_WEBHOOK_SECRET string
 }
 
 func LoadENV() (*Env, error) {
@@ -25,8 +27,10 @@ func LoadENV() (*Env, error) {
 	}
 
 	return &Env{
-		PORT:       port,
-		JWT_SECRET: os.Getenv("JWT_SECRET"),
-		DB_DSN:     os.Getenv("DB_DSN"),
+		PORT:                  port,
+		JWT_SECRET:            os.Getenv("JWT_SECRET"),
+		DB_DSN:                os.Getenv("DB_DSN"),
+		STRIPE_KEY:            os.Getenv("STRIPE_KEY"),
+		STRIPE_WEBHOOK_SECRET: os.Getenv("STRIPE_WEBHOOK_SECRET"),
 	}, nil
 }

@@ -1,2 +1,5 @@
 .env
 .env.*
+cspell.json
+.air.toml
+tmp/

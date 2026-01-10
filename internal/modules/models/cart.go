@@ -6,7 +6,7 @@ type Cart struct {
 	ID     uuid.UUID `json:"id" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null;uniqueIndex"`
 
-	CartItems []CartItem `json:"cart_items"`
+	CartItems []CartItem `json:"cart_items" gorm:"foreignKey:CartID;references:ID"`
 }
 
 type CartItem struct {

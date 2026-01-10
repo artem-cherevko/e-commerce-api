@@ -5,10 +5,12 @@ import (
 	"e-commerce-api/internal/database"
 	"e-commerce-api/internal/modules/auth"
 	"e-commerce-api/internal/modules/cart"
+	"e-commerce-api/internal/modules/payments"
 	"e-commerce-api/internal/modules/products"
 
 	"github.com/gin-gonic/gin"
 	"github.com/matthewhartstonge/argon2"
+	"github.com/stripe/stripe-go/v84"
 )
 
 type App struct {
@@ -25,6 +27,7 @@ func New(cfg *config.Env) (*App, error) {
 	}
 
 	argon := argon2.DefaultConfig()
+	stripe.Key = cfg.STRIPE_KEY
 
 	// Init engine
 	engine := gin.New()
@@ -43,11 +46,16 @@ func New(cfg *config.Env) (*App, error) {
 	cartService := cart.NewCartService(db, productsService)
 	cartHandler := cart.NewCartHandler(cartService)
 
+	// PAYMENTS
+	paymentsService := payments.NewPaymentsService(db)
+	paymentsHandler := payments.NewPaymentsHandler(paymentsService, cfg.STRIPE_WEBHOOK_SECRET)
+
 	r := engine.Group("/api/v1")
 
 	auth.RegisterAuthRouters(r, authHandler)
 	products.RegisterProductsRouters(r, productsHandler, mv)
 	cart.RegisterCartRouters(r, cartHandler, mv)
+	payments.NewPaymentsRouter(r, paymentsHandler, mv)
 
 	return &App{
 		Engine: engine,
